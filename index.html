@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Shape Connection UI</title>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <div class="app-container">
+    <header>
+      <h1>Shape Connection UI</h1>
+    </header>
+
+    <main>
+      <div class="card">
+        <div class="card-content">
+          <div class="shape-connection-ui">
+            <div class="toolbar">
+              <!-- Mode Controls -->
+              <div class="control-group" id="mode-controls">
+                <button class="mode-btn move-mode active" id="mode-btn">Move Mode</button>
+              </div>
+
+              <!-- Shape Controls -->
+              <div class="control-group" id="shape-controls">
+                <button class="shape-btn active" data-shape="circle">Circle</button>
+                <button class="shape-btn" data-shape="rectangle">Rectangle</button>
+                <button class="shape-btn" data-shape="triangle">Triangle</button>
+              </div>
+
+              <!-- Color Controls -->
+              <div class="control-group" id="color-controls">
+                <label for="color-select">Color:</label>
+                <select id="color-select">
+                  <option value="#3B82F6">Blue</option>
+                  <option value="#EF4444">Red</option>
+                  <option value="#10B981">Green</option>
+                  <option value="#F59E0B">Yellow</option>
+                  <option value="#8B5CF6">Purple</option>
+                  <option value="#EC4899">Pink</option>
+                </select>
+              </div>
+
+              <!-- Type Controls -->
+              <div class="control-group" id="type-controls" style="display: none;">
+                <label for="type-select">Type:</label>
+                <select id="type-select">
+                  <option value="blue">Blue</option>
+                  <option value="red">Red</option>
+                  <option value="gray">Gray</option>
+                  <option value="double-blue">Double Blue</option>
+                  <option value="double-red">Double Red</option>
+                  <option value="double-gray">Double Gray</option>
+                </select>
+              </div>
+
+              <!-- History Controls -->
+              <div class="control-group" id="history-controls">
+                <button class="history-btn disabled" id="undo-btn" title="Undo (Ctrl+Z)" disabled>↩ Undo</button>
+                <button class="history-btn disabled" id="redo-btn" title="Redo (Ctrl+Y)" disabled>↪ Redo</button>
+              </div>
+
+              <!-- Save/Load Controls -->
+              <div class="control-group" id="file-controls">
+                <button class="file-btn" id="save-btn">Save Diagram</button>
+                <button class="file-btn" id="load-btn">Load Diagram</button>
+                <input type="file" id="file-input" accept=".json" hidden>
+              </div>
+            </div>
+
+            <div class="canvas-container">
+              <canvas id="shape-canvas" width="600" height="400"></canvas>
+            </div>
+
+            <div class="instructions" id="instructions">
+              Drag shapes to move them around
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <footer>
+      <p>Shape Connection UI - Interactive shape diagram tool</p>
+    </footer>
+  </div>
+
+  <!-- Load JavaScript files -->
+  <script src="js/utils/shapeUtils.js"></script>
+  <script src="js/utils/connectionUtils.js"></script>
+  <script src="js/utils/fileUtils.js"></script>
+  <script src="js/utils/historyUtils.js"></script>
+  <script src="js/ui/toolbarControls.js"></script>
+  <script src="js/ui/modeControls.js"></script>
+  <script src="js/ui/saveLoadControls.js"></script>
+  <script src="js/ui/historyControls.js"></script>
+  <script src="js/shapeCanvas.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
