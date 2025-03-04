@@ -1,4 +1,4 @@
-# Shape Connection UI
+# Mapping App
 
 An interactive tool for creating, connecting, and manipulating shapes using vanilla HTML, CSS, and JavaScript.
 
@@ -38,19 +38,21 @@ MIT
 
 ## Project Structure
 
-shape-connection-app/
-├── index.html
+MappingApp/
 ├── css/
 │   └── styles.css
 ├── js/
-│   ├── app.js
-│   ├── shapeCanvas.js
+│   ├── ui/
+│   │   ├── historyControls.js
+│   │   ├── modeControls.js
+│   │   ├── saveLoadControls.js
+│   │   └── toolbarControls.js
 │   ├── utils/
-│   │   ├── shapeUtils.js
 │   │   ├── connectionUtils.js
-│   │   └── fileUtils.js
-│   └── ui/
-│       ├── toolbarControls.js
-│       ├── modeControls.js
-│       └── saveLoadControls.js
+│   │   ├── fileUtils.js
+│   │   ├── historyUtils.js
+│   │   └── shapeUtils.js
+│   ├── app.js
+│   └── shapeCanvas.js
+├── index.html
 └── README.md
