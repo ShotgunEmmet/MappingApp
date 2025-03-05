@@ -1,4 +1,4 @@
-# Mapping App
+# Mapping App 🌌
 
 An interactive tool for creating, connecting, and manipulating shapes using vanilla HTML, CSS, and JavaScript.
 
@@ -6,7 +6,7 @@ An interactive tool for creating, connecting, and manipulating shapes using vani
 
 [Make a map online](https://shotgunemmet.github.io/MappingApp/) or download and run locally.
 
-## Features
+## ✨ Features
 
 - Create different shapes (circles, rectangles, triangles)
 - Connect shapes with lines
@@ -14,13 +14,13 @@ An interactive tool for creating, connecting, and manipulating shapes using vani
 - Delete shapes and connections
 - Save and load diagrams
 
-## Modes
+## 📖 Modes
 
 - **Move Mode**: Drag shapes to reposition them
 - **Connection Mode**: Create lines between shapes
 - **Delete Mode**: Remove shapes and their connections
 
-## How to Use
+### 🕹️ How to Use
 
 1. Open `index.html` in a web browser
 2. Select a shape type and click "Add Shape" to add to the canvas
@@ -29,18 +29,14 @@ An interactive tool for creating, connecting, and manipulating shapes using vani
 5. Save your diagram using the "Save Diagram" button
 6. Load existing diagrams using the "Load Diagram" button
 
-## Browser Support
+## 👀 Browser Support
 
 - Chrome (recommended)
 - Firefox
 - Safari
 - Edge
 
-## License
-
-MIT
-
-## Project Structure
+## 📁 Project Structure
 ```
 MappingApp/
 ├── css/
