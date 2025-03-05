@@ -37,7 +37,7 @@ An interactive tool for creating, connecting, and manipulating shapes using vani
 MIT
 
 ## Project Structure
-
+```
 MappingApp/
 ├── css/
 │   └── styles.css
@@ -56,3 +56,4 @@ MappingApp/
 │   └── shapeCanvas.js
 ├── index.html
 └── README.md
+```
