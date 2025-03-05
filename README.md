@@ -2,6 +2,10 @@
 
 An interactive tool for creating, connecting, and manipulating shapes using vanilla HTML, CSS, and JavaScript.
 
+## 🎮 Test Now
+
+[Make a map online](https://shotgunemmet.github.io/MappingApp/) or download and run locally.
+
 ## Features
 
 - Create different shapes (circles, rectangles, triangles)
