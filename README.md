@@ -61,3 +61,19 @@ MappingApp/
 ├── index.html
 └── README.md
 ```
+
+## 📜 License
+
+MIT License - See LICENSE file for details.
+
+## 🙌 Credits
+
+- App concept and implementation by  Emmet
+
+## 📣 Feedback and Contributions
+
+Feedback, bug reports, and pull requests are welcome! Feel free to check the [issues page](https://github.com/shotgunemmet/MappingApp/issues).
+
+---
+
+Made with ❤️ by Emmet
