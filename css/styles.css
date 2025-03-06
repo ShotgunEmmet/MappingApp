@@ -1,4 +1,32 @@
 /* Base styles */
+:root {
+  --bg-color: #f5f5f5;
+  --text-color: #333;
+  --card-bg: white;
+  --card-shadow: rgba(0, 0, 0, 0.1);
+  --app-bg: #f9f9f9;
+  --border-color: #ddd;
+  --button-bg: #e5e5e5;
+  --button-text: #333;
+  --footer-color: #666;
+  --instructions-color: #666;
+  --canvas-bg: white;
+}
+
+.dark-mode {
+  --bg-color: #121212;
+  --text-color: #e0e0e0;
+  --card-bg: #1e1e1e;
+  --card-shadow: rgba(0, 0, 0, 0.4);
+  --app-bg: #2d2d2d;
+  --border-color: #444;
+  --button-bg: #3a3a3a;
+  --button-text: #e0e0e0;
+  --footer-color: #999;
+  --instructions-color: #bbb;
+  --canvas-bg: #2d2d2d;
+}
+
 * {
   box-sizing: border-box;
   margin: 0;
@@ -7,9 +35,10 @@
 
 body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-  background-color: #f5f5f5;
-  color: #333;
+  background-color: var(--bg-color);
+  color: var(--text-color);
   line-height: 1.6;
+  transition: background-color 0.3s, color 0.3s;
 }
 
 .app-container {
@@ -25,22 +54,23 @@ header {
 
 h1 {
   font-size: 1.8rem;
-  color: #333;
+  color: var(--text-color);
 }
 
 footer {
   text-align: center;
   margin-top: 2rem;
-  color: #666;
+  color: var(--footer-color);
   font-size: 0.9rem;
 }
 
 /* Card styles */
 .card {
-  background-color: white;
+  background-color: var(--card-bg);
   border-radius: 8px;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 6px var(--card-shadow);
   overflow: hidden;
+  transition: background-color 0.3s, box-shadow 0.3s;
 }
 
 .card-header {
@@ -63,8 +93,9 @@ footer {
   flex-direction: column;
   align-items: center;
   padding: 1rem;
-  background-color: #f9f9f9;
+  background-color: var(--app-bg);
   border-radius: 8px;
+  transition: background-color 0.3s;
 }
 
 .toolbar {
@@ -96,7 +127,8 @@ button:hover {
 
 /* Shape buttons */
 .shape-btn {
-  background-color: #e5e5e5;
+  background-color: var(--button-bg);
+  color: var(--button-text);
 }
 
 .shape-btn.active {
@@ -134,9 +166,10 @@ button:hover {
 
 select {
   padding: 0.5rem;
-  border: 1px solid #ddd;
+  border: 1px solid var(--border-color);
   border-radius: 4px;
-  background-color: white;
+  background-color: var(--card-bg);
+  color: var(--text-color);
 }
 
 /* File buttons */
@@ -152,19 +185,20 @@ select {
 }
 
 #shape-canvas {
-  background-color: white;
-  border: 1px solid #ddd;
+  background-color: var(--canvas-bg);
+  border: 1px solid var(--border-color);
   border-radius: 4px;
   width: 100%;
   height: auto;
   cursor: pointer;
+  transition: background-color 0.3s, border-color 0.3s;
 }
 
 /* Instructions */
 .instructions {
   margin-top: 1rem;
   font-size: 0.9rem;
-  color: #666;
+  color: var(--instructions-color);
   text-align: center;
 }
 
@@ -203,4 +237,28 @@ select {
   font-size: 0.8rem;
   color: #64748B;
   margin-left: 0.3rem;
+}
+
+/* Dark mode toggle */
+.theme-toggle {
+  background-color: transparent;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  padding: 0.5rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-color);
+  transition: all 0.3s;
+}
+
+.theme-toggle:hover {
+  background-color: var(--button-bg);
+}
+
+.theme-toggle svg {
+  width: 1.2rem;
+  height: 1.2rem;
+  fill: currentColor;
 }

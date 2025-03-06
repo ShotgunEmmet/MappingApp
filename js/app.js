@@ -35,6 +35,9 @@ document.addEventListener('DOMContentLoaded', () => {
   // Initialize save/load controls
   initSaveLoadControls(appState, historyManager);
   
+  // Initialize theme controls
+  initThemeControls();
+  
   // Update instructions based on current mode
   updateInstructions(appState.mode);
   
