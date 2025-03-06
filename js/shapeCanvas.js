@@ -33,6 +33,10 @@ function initShapeCanvas(canvasElement, appState) {
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
     
+    // Update last mouse position for connection end point
+    appState.lastMouseX = x;
+    appState.lastMouseY = y;
+    
     handleInteractionStart(x, y);
   }
   
@@ -44,7 +48,17 @@ function initShapeCanvas(canvasElement, appState) {
     handleInteractionMove(x, y);
   }
   
-  function handleMouseUp() {
+  function handleMouseUp(e) {
+    if (e) {
+      const rect = canvasElement.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+      
+      // Update last mouse position for connection end point
+      appState.lastMouseX = x;
+      appState.lastMouseY = y;
+    }
+    
     handleInteractionEnd();
   }
   
@@ -55,6 +69,10 @@ function initShapeCanvas(canvasElement, appState) {
       const rect = canvasElement.getBoundingClientRect();
       const x = e.touches[0].clientX - rect.left;
       const y = e.touches[0].clientY - rect.top;
+      
+      // Update last mouse position for connection end point
+      appState.lastMouseX = x;
+      appState.lastMouseY = y;
       
       handleInteractionStart(x, y);
     }
@@ -67,11 +85,17 @@ function initShapeCanvas(canvasElement, appState) {
       const x = e.touches[0].clientX - rect.left;
       const y = e.touches[0].clientY - rect.top;
       
+      // Update last mouse position for connection end point
+      appState.lastMouseX = x;
+      appState.lastMouseY = y;
+      
       handleInteractionMove(x, y);
     }
   }
   
-  function handleTouchEnd() {
+  function handleTouchEnd(e) {
+    // For touch end, we need to use the last known touch position
+    // since there are no touch points in the touchend event
     handleInteractionEnd();
   }
   
@@ -156,15 +180,28 @@ function initShapeCanvas(canvasElement, appState) {
           connectionColor = '#EF4444';
         }
         
-        // Create the new connection
-        const newConnection = {
-          id: Date.now(),
-          startId: appState.connectionStart.id,
-          endId: endShape.id,
-          color: connectionColor,
-          type: appState.connectionType
-        };
-        appState.connections.push(newConnection);
+        // Check if a connection already exists in the same direction
+        const existingConnection = sameDirectionConnectionExists(
+          appState.connectionStart.id, 
+          endShape.id, 
+          appState.connections
+        );
+        
+        if (existingConnection) {
+          // Update the existing connection instead of creating a new one
+          existingConnection.color = connectionColor;
+          existingConnection.type = appState.connectionType;
+        } else {
+          // Create the new connection
+          const newConnection = {
+            id: Date.now(),
+            startId: appState.connectionStart.id,
+            endId: endShape.id,
+            color: connectionColor,
+            type: appState.connectionType
+          };
+          appState.connections.push(newConnection);
+        }
       } else {
         // If no connection was made, discard the history entry
         if (window.historyManager) {
@@ -273,10 +310,12 @@ function initShapeCanvas(canvasElement, appState) {
       const endShape = appState.shapes.find(shape => shape.id === connection.endId);
       
       if (startShape && endShape) {
-        // Draw the line
-        ctx.beginPath();
-        ctx.moveTo(startShape.x, startShape.y);
-        ctx.lineTo(endShape.x, endShape.y);
+        // Check if there's a connection in the opposite direction
+        const oppositeConnection = oppositeDirectionConnectionExists(
+          connection.startId, 
+          connection.endId, 
+          appState.connections
+        );
         
         // Style for connections
         const connectionColor = appState.hoveredConnection && 
@@ -288,11 +327,148 @@ function initShapeCanvas(canvasElement, appState) {
           appState.hoveredConnection.id === connection.id && 
           appState.mode === 'delete' ? 4 : 2;
         
-        ctx.stroke();
-        
-        // Draw the arrow(s)
-        const isDouble = connection.type === 'double-blue' || connection.type === 'double-red' || connection.type === 'double-gray';
-        drawArrow(startShape.x, startShape.y, endShape.x, endShape.y, connectionColor, isDouble);
+        if (oppositeConnection) {
+          // Draw curved line for bidirectional connections
+          const dx = endShape.x - startShape.x;
+          const dy = endShape.y - startShape.y;
+          const distance = Math.sqrt(dx * dx + dy * dy);
+          
+          // Calculate perpendicular offset for the curve
+          // The curve should bend to the left relative to the direction of the connection
+          // Make the curve proportional to the distance between shapes
+          // Closer shapes = more curved, further shapes = less curved
+          const curveFactor = Math.min(0.5, 50 / distance); // Limit max curvature
+          const offsetX = -dy * curveFactor;
+          const offsetY = dx * curveFactor;
+          
+          // Control point for the quadratic curve
+          const controlX = (startShape.x + endShape.x) / 2 + offsetX;
+          const controlY = (startShape.y + endShape.y) / 2 + offsetY;
+          
+          // Draw the curved path
+          ctx.beginPath();
+          ctx.moveTo(startShape.x, startShape.y);
+          ctx.quadraticCurveTo(
+            controlX,
+            controlY,
+            endShape.x, 
+            endShape.y
+          );
+          ctx.stroke();
+          
+          // Draw arrow on the curved path
+          const isDouble = connection.type === 'double-blue' || connection.type === 'double-red' || connection.type === 'double-gray';
+          
+          // Arrow properties
+          const arrowLength = 10;
+          const arrowWidth = Math.PI / 6; // 30 degrees
+          
+          if (isDouble) {
+            // Calculate positions for double arrows on the curve
+            // First arrow at 1/3 of the curve
+            const t1 = 1/3;
+            // Calculate point on quadratic curve at t1
+            const firstThirdX = Math.pow(1-t1, 2) * startShape.x + 
+                               2 * (1-t1) * t1 * controlX + 
+                               Math.pow(t1, 2) * endShape.x;
+            const firstThirdY = Math.pow(1-t1, 2) * startShape.y + 
+                               2 * (1-t1) * t1 * controlY + 
+                               Math.pow(t1, 2) * endShape.y;
+            
+            // Calculate tangent at t1
+            const tangentX1 = 2 * (1-t1) * (controlX - startShape.x) + 
+                             2 * t1 * (endShape.x - controlX);
+            const tangentY1 = 2 * (1-t1) * (controlY - startShape.y) + 
+                             2 * t1 * (endShape.y - controlY);
+            const angle1 = Math.atan2(tangentY1, tangentX1);
+            
+            // Second arrow at 2/3 of the curve
+            const t2 = 2/3;
+            // Calculate point on quadratic curve at t2
+            const secondThirdX = Math.pow(1-t2, 2) * startShape.x + 
+                                2 * (1-t2) * t2 * controlX + 
+                                Math.pow(t2, 2) * endShape.x;
+            const secondThirdY = Math.pow(1-t2, 2) * startShape.y + 
+                                2 * (1-t2) * t2 * controlY + 
+                                Math.pow(t2, 2) * endShape.y;
+            
+            // Calculate tangent at t2
+            const tangentX2 = 2 * (1-t2) * (controlX - startShape.x) + 
+                             2 * t2 * (endShape.x - controlX);
+            const tangentY2 = 2 * (1-t2) * (controlY - startShape.y) + 
+                             2 * t2 * (endShape.y - controlY);
+            const angle2 = Math.atan2(tangentY2, tangentX2);
+            
+            // Draw first arrow
+            ctx.beginPath();
+            ctx.moveTo(
+              firstThirdX - arrowLength * Math.cos(angle1 - arrowWidth),
+              firstThirdY - arrowLength * Math.sin(angle1 - arrowWidth)
+            );
+            ctx.lineTo(firstThirdX, firstThirdY);
+            ctx.lineTo(
+              firstThirdX - arrowLength * Math.cos(angle1 + arrowWidth),
+              firstThirdY - arrowLength * Math.sin(angle1 + arrowWidth)
+            );
+            ctx.strokeStyle = connectionColor;
+            ctx.stroke();
+            
+            // Draw second arrow
+            ctx.beginPath();
+            ctx.moveTo(
+              secondThirdX - arrowLength * Math.cos(angle2 - arrowWidth),
+              secondThirdY - arrowLength * Math.sin(angle2 - arrowWidth)
+            );
+            ctx.lineTo(secondThirdX, secondThirdY);
+            ctx.lineTo(
+              secondThirdX - arrowLength * Math.cos(angle2 + arrowWidth),
+              secondThirdY - arrowLength * Math.sin(angle2 + arrowWidth)
+            );
+            ctx.strokeStyle = connectionColor;
+            ctx.stroke();
+          } else {
+            // Single arrow at midpoint (t = 0.5)
+            const t = 0.5;
+            // Calculate point on quadratic curve at t
+            const midX = Math.pow(1-t, 2) * startShape.x + 
+                        2 * (1-t) * t * controlX + 
+                        Math.pow(t, 2) * endShape.x;
+            const midY = Math.pow(1-t, 2) * startShape.y + 
+                        2 * (1-t) * t * controlY + 
+                        Math.pow(t, 2) * endShape.y;
+            
+            // Calculate tangent at t
+            const tangentX = 2 * (1-t) * (controlX - startShape.x) + 
+                            2 * t * (endShape.x - controlX);
+            const tangentY = 2 * (1-t) * (controlY - startShape.y) + 
+                            2 * t * (endShape.y - controlY);
+            const angle = Math.atan2(tangentY, tangentX);
+            
+            // Draw arrow
+            ctx.beginPath();
+            ctx.moveTo(
+              midX - arrowLength * Math.cos(angle - arrowWidth),
+              midY - arrowLength * Math.sin(angle - arrowWidth)
+            );
+            ctx.lineTo(midX, midY);
+            ctx.lineTo(
+              midX - arrowLength * Math.cos(angle + arrowWidth),
+              midY - arrowLength * Math.sin(angle + arrowWidth)
+            );
+            ctx.strokeStyle = connectionColor;
+            ctx.stroke();
+          }
+        } else {
+          // Draw straight line for unidirectional connections
+          ctx.beginPath();
+          ctx.moveTo(startShape.x, startShape.y);
+          ctx.lineTo(endShape.x, endShape.y);
+          ctx.stroke();
+          
+          // Draw the arrow(s)
+          const isDouble = connection.type === 'double-blue' || connection.type === 'double-red' || connection.type === 'double-gray';
+          drawArrow(startShape.x, startShape.y, endShape.x, endShape.y, connectionColor, isDouble);
+        }
       }
     });
     

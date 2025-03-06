@@ -8,7 +8,28 @@ function findShapeAt(x, y, shapes) {
         Math.pow(x - shape.x, 2) + Math.pow(y - shape.y, 2)
       );
       if (distance <= radius) return shape;
+    } else if (shape.type === 'triangle') {
+      // For triangles, we need to check if the point is inside the triangle
+      // This uses the barycentric coordinate method
+      const x1 = shape.x;
+      const y1 = shape.y - shape.height / 2;
+      const x2 = shape.x - shape.width / 2;
+      const y2 = shape.y + shape.height / 2;
+      const x3 = shape.x + shape.width / 2;
+      const y3 = shape.y + shape.height / 2;
+      
+      const denominator = ((y2 - y3) * (x1 - x3) + (x3 - x2) * (y1 - y3));
+      if (denominator === 0) continue; // Degenerate triangle
+      
+      const a = ((y2 - y3) * (x - x3) + (x3 - x2) * (y - y3)) / denominator;
+      const b = ((y3 - y1) * (x - x3) + (x1 - x3) * (y - y3)) / denominator;
+      const c = 1 - a - b;
+      
+      if (a >= 0 && a <= 1 && b >= 0 && b <= 1 && c >= 0 && c <= 1) {
+        return shape;
+      }
     } else {
+      // Rectangle hit test
       if (
         x >= shape.x - shape.width / 2 &&
         x <= shape.x + shape.width / 2 &&
@@ -17,60 +38,6 @@ function findShapeAt(x, y, shapes) {
       ) {
         return shape;
       }
-    }
-  }
-  return null;
-}
-
-// Find connection at position
-function findConnectionAt(x, y, connections, shapes) {
-  for (let i = 0; i < connections.length; i++) {
-    const conn = connections[i];
-    const startShape = shapes.find(s => s.id === conn.startId);
-    const endShape = shapes.find(s => s.id === conn.endId);
-    
-    if (!startShape || !endShape) continue;
-    
-    // Line equation parameters
-    const x1 = startShape.x;
-    const y1 = startShape.y;
-    const x2 = endShape.x;
-    const y2 = endShape.y;
-    
-    // Calculate distance from point to line
-    const A = x - x1;
-    const B = y - y1;
-    const C = x2 - x1;
-    const D = y2 - y1;
-    
-    const dot = A * C + B * D;
-    const lenSq = C * C + D * D;
-    let param = -1;
-    
-    if (lenSq !== 0) {
-      param = dot / lenSq;
-    }
-    
-    let xx, yy;
-    
-    if (param < 0) {
-      xx = x1;
-      yy = y1;
-    } else if (param > 1) {
-      xx = x2;
-      yy = y2;
-    } else {
-      xx = x1 + param * C;
-      yy = y1 + param * D;
-    }
-    
-    const dx = x - xx;
-    const dy = y - yy;
-    const distance = Math.sqrt(dx * dx + dy * dy);
-    
-    // Check if close enough to line
-    if (distance < 10) {
-      return conn;
     }
   }
   return null;
