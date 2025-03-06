@@ -7,6 +7,9 @@ document.addEventListener('DOMContentLoaded', () => {
     selectedShape: null,
     connectionStart: null,
     hoveredConnection: null,
+    hoveredShape: null, // Added hoveredShape property
+    dragOffsetX: 0, // Offset between mouse and shape center when dragging
+    dragOffsetY: 0, // Offset between mouse and shape center when dragging
     mode: 'move', // 'move', 'connect', or 'delete'
     currentColor: '#3B82F6',
     currentShape: 'circle',

@@ -2,6 +2,9 @@
 function initShapeCanvas(canvasElement, appState) {
   const ctx = canvasElement.getContext('2d');
   
+  // Add hoveredShape to appState if it doesn't exist
+  appState.hoveredShape = null;
+  
   // Adjust canvas dimensions based on device pixel ratio
   function setupCanvas() {
     const dpr = window.devicePixelRatio || 1;
@@ -136,6 +139,10 @@ function initShapeCanvas(canvasElement, appState) {
       if (shape) {
         shape.originalX = shape.x;
         shape.originalY = shape.y;
+        
+        // Store offset between mouse position and shape center
+        appState.dragOffsetX = shape.x - x;
+        appState.dragOffsetY = shape.y - y;
       }
       
       drawCanvas();
@@ -144,14 +151,23 @@ function initShapeCanvas(canvasElement, appState) {
   
   function handleInteractionMove(x, y) {
     if (appState.mode === 'delete') {
-      // Check if hovering over a connection
-      const conn = findConnectionAt(x, y, appState.connections, appState.shapes);
-      appState.hoveredConnection = conn;
+      // Check if hovering over a shape
+      const shape = findShapeAt(x, y, appState.shapes);
+      appState.hoveredShape = shape;
+
+      if(appState.hoveredShape === null) {
+        // Check if hovering over a connection
+        const conn = findConnectionAt(x, y, appState.connections, appState.shapes);
+        appState.hoveredConnection = conn;
+      } else {
+        appState.hoveredConnection = null
+      }
+
       drawCanvas();
     } else if (appState.mode === 'move' && appState.selectedShape) {
       // Move the selected shape
-      appState.selectedShape.x = x;
-      appState.selectedShape.y = y;
+      appState.selectedShape.x = x + appState.dragOffsetX;
+      appState.selectedShape.y = y + appState.dragOffsetY;
       drawCanvas();
     } else if (appState.mode === 'connect' && appState.connectionStart) {
       // Just redraw to update the temporary connection line
@@ -528,9 +544,9 @@ function initShapeCanvas(canvasElement, appState) {
         ctx.fill();
       }
       
-      // Highlight shapes
+      // Highlight shapes - MODIFIED to only highlight hovered shapes in delete mode
       if ((appState.selectedShape && shape.id === appState.selectedShape.id) || 
-          (appState.mode === 'delete')) {
+          (appState.mode === 'delete' && appState.hoveredShape && shape.id === appState.hoveredShape.id)) {
         ctx.strokeStyle = appState.mode === 'delete' ? '#EF4444' : '#000';
         ctx.lineWidth = 2;
         if (shape.type === 'circle') {

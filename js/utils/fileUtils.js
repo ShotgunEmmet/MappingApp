@@ -1,7 +1,15 @@
 // Save the current diagram to a file
 function saveToFile(appState) {
   // Prompt user for filename
-  const filename = prompt('Enter a name for your diagram:', 'diagram') || 'diagram';
+  const filename = prompt('Enter a name for your diagram:', 'diagram');
+  
+  // If user clicked Cancel, exit the function without saving
+  if (filename === null) {
+    return;
+  }
+  
+  // Use the provided filename or default to 'diagram' if empty string
+  const finalFilename = filename.trim() || 'diagram';
   
   const data = {
     shapes: appState.shapes,
@@ -14,7 +22,7 @@ function saveToFile(appState) {
   
   const a = document.createElement('a');
   a.href = url;
-  a.download = `${filename}.json`;
+  a.download = `${finalFilename}.json`;
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);

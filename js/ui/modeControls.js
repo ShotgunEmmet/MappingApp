@@ -3,6 +3,9 @@ function initModeControls(appState) {
   const modeButton = document.getElementById('mode-btn');
   
   modeButton.addEventListener('click', () => {
+    // Reset hoveredShape when changing modes
+    appState.hoveredShape = null;
+    
     // Cycle through modes
     if (appState.mode === 'move') {
       appState.mode = 'connect';
