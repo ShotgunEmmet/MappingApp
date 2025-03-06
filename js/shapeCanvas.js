@@ -107,18 +107,18 @@ function initShapeCanvas(canvasElement, appState) {
     }
     
     if (appState.mode === 'delete') {
-      // Check for connection first (have priority in delete mode)
-      const conn = findConnectionAt(x, y, appState.connections, appState.shapes);
-      if (conn) {
-        deleteConnection(conn.id, appState);
-        drawCanvas();
-        return;
-      }
-      
       // If no connection was clicked, check for shape
       const shape = findShapeAt(x, y, appState.shapes);
       if (shape) {
         deleteShape(shape.id, appState);
+        drawCanvas();
+        return;
+      }
+	  
+      // Check for connection first (have priority in delete mode)
+      const conn = findConnectionAt(x, y, appState.connections, appState.shapes);
+      if (conn) {
+        deleteConnection(conn.id, appState);
         drawCanvas();
         return;
       }
