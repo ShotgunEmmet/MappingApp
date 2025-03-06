@@ -65,9 +65,9 @@ function findConnectionAt(x, y, connections, shapes) {
       
       // Calculate perpendicular offset for the curve (same as in drawing)
       // Make the curve proportional to the distance between shapes
-      const curveFactor = Math.min(0.5, 50 / distance); // Limit max curvature
-      const offsetX = -dy * curveFactor;
-      const offsetY = dx * curveFactor;
+      const curveFactor = Math.min(0.5, 20 / distance); // Limit max curvature
+      const offsetX = dy * curveFactor;
+      const offsetY = -dx * curveFactor;
       
       const controlX = (startShape.x + endShape.x) / 2 + offsetX;
       const controlY = (startShape.y + endShape.y) / 2 + offsetY;

@@ -337,9 +337,9 @@ function initShapeCanvas(canvasElement, appState) {
           // The curve should bend to the left relative to the direction of the connection
           // Make the curve proportional to the distance between shapes
           // Closer shapes = more curved, further shapes = less curved
-          const curveFactor = Math.min(0.5, 50 / distance); // Limit max curvature
-          const offsetX = -dy * curveFactor;
-          const offsetY = dx * curveFactor;
+          const curveFactor = Math.min(0.5, 30 / distance); // Limit max curvature
+          const offsetX = dy * curveFactor;
+          const offsetY = -dx * curveFactor;
           
           // Control point for the quadratic curve
           const controlX = (startShape.x + endShape.x) / 2 + offsetX;
