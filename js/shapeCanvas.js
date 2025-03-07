@@ -31,7 +31,7 @@ function initShapeCanvas(canvasElement, appState) {
     canvasElement.style.height = `${zoomedHeight}px`;
     
     // Scale context according to device pixel ratio and zoom
-    ctx.setTransform(dpr * zoomLevel, 0, 0, dpr * zoomLevel, 0, 0);
+    ctx.setTransform(dpr * zoomLevel, 0, 0, dpr * zoomLevel, appState.panX * dpr, appState.panY * dpr);
   }
   
   setupCanvas();
@@ -48,23 +48,32 @@ function initShapeCanvas(canvasElement, appState) {
   canvasElement.addEventListener('touchmove', handleTouchMove);
   canvasElement.addEventListener('touchend', handleTouchEnd);
   
-  // Convert window coordinates to canvas coordinates accounting for zoom
-  function windowToCanvas(x, y) {
-    const zoomLevel = appState.zoomLevel || 1.0;
+  // Convert window coordinates to canvas coordinates accounting for zoom and pan
+  function windowToCanvas(clientX, clientY) {
+    // Check if we can use the zoom utils windowToCanvas function
+    if (window.zoomControls && window.zoomControls.windowToCanvas) {
+      return window.zoomControls.windowToCanvas(clientX, clientY);
+    }
+    
+    // Fallback implementation if zoom utils aren't available
+    const rect = canvasElement.getBoundingClientRect();
+    const scaleX = canvasElement.width / rect.width;
+    const scaleY = canvasElement.height / rect.height;
+    
+    const canvasX = (clientX - rect.left) * scaleX;
+    const canvasY = (clientY - rect.top) * scaleY;
+    
+    // Adjust for zoom and pan
     return {
-      x: x / zoomLevel,
-      y: y / zoomLevel
+      x: (canvasX / appState.zoomLevel - appState.panX) / window.devicePixelRatio,
+      y: (canvasY / appState.zoomLevel - appState.panY) / window.devicePixelRatio
     };
   }
   
   // Mouse event handlers
   function handleMouseDown(e) {
-    const rect = canvasElement.getBoundingClientRect();
-    const rawX = e.clientX - rect.left;
-    const rawY = e.clientY - rect.top;
-    
-    // Convert to canvas coordinates accounting for zoom
-    const {x, y} = windowToCanvas(rawX, rawY);
+    // Convert to canvas coordinates accounting for zoom and pan
+    const {x, y} = windowToCanvas(e.clientX, e.clientY);
     
     // Update last mouse position for connection end point
     appState.lastMouseX = x;
@@ -74,24 +83,20 @@ function initShapeCanvas(canvasElement, appState) {
   }
   
   function handleMouseMove(e) {
-    const rect = canvasElement.getBoundingClientRect();
-    const rawX = e.clientX - rect.left;
-    const rawY = e.clientY - rect.top;
+    // Convert to canvas coordinates accounting for zoom and pan
+    const {x, y} = windowToCanvas(e.clientX, e.clientY);
     
-    // Convert to canvas coordinates accounting for zoom
-    const {x, y} = windowToCanvas(rawX, rawY);
+    // Update last mouse position for drawing connections
+    appState.lastMouseX = x;
+    appState.lastMouseY = y;
     
     handleInteractionMove(x, y);
   }
   
   function handleMouseUp(e) {
     if (e) {
-      const rect = canvasElement.getBoundingClientRect();
-      const rawX = e.clientX - rect.left;
-      const rawY = e.clientY - rect.top;
-      
-      // Convert to canvas coordinates accounting for zoom
-      const {x, y} = windowToCanvas(rawX, rawY);
+      // Convert to canvas coordinates accounting for zoom and pan
+      const {x, y} = windowToCanvas(e.clientX, e.clientY);
       
       // Update last mouse position for connection end point
       appState.lastMouseX = x;
@@ -105,12 +110,8 @@ function initShapeCanvas(canvasElement, appState) {
   function handleTouchStart(e) {
     e.preventDefault();
     if (e.touches.length > 0) {
-      const rect = canvasElement.getBoundingClientRect();
-      const rawX = e.touches[0].clientX - rect.left;
-      const rawY = e.touches[0].clientY - rect.top;
-      
-      // Convert to canvas coordinates accounting for zoom
-      const {x, y} = windowToCanvas(rawX, rawY);
+      // Convert to canvas coordinates accounting for zoom and pan
+      const {x, y} = windowToCanvas(e.touches[0].clientX, e.touches[0].clientY);
       
       // Update last mouse position for connection end point
       appState.lastMouseX = x;
@@ -123,12 +124,8 @@ function initShapeCanvas(canvasElement, appState) {
   function handleTouchMove(e) {
     e.preventDefault();
     if (e.touches.length > 0) {
-      const rect = canvasElement.getBoundingClientRect();
-      const rawX = e.touches[0].clientX - rect.left;
-      const rawY = e.touches[0].clientY - rect.top;
-      
-      // Convert to canvas coordinates accounting for zoom
-      const {x, y} = windowToCanvas(rawX, rawY);
+      // Convert to canvas coordinates accounting for zoom and pan
+      const {x, y} = windowToCanvas(e.touches[0].clientX, e.touches[0].clientY);
       
       // Update last mouse position for connection end point
       appState.lastMouseX = x;
@@ -219,8 +216,6 @@ function initShapeCanvas(canvasElement, appState) {
   
   function handleInteractionEnd() {
     if (appState.mode === 'connect' && appState.connectionStart) {
-      const rect = canvasElement.getBoundingClientRect();
-      
       // Get current mouse position
       const mouseX = appState.lastMouseX || 0;
       const mouseY = appState.lastMouseY || 0;
@@ -290,8 +285,11 @@ function initShapeCanvas(canvasElement, appState) {
     const width = appState.originalWidth || canvasElement.width / (window.devicePixelRatio || 1);
     const height = appState.originalHeight || canvasElement.height / (window.devicePixelRatio || 1);
     
-    // Clear canvas
-    ctx.clearRect(0, 0, width, height);
+    // Clear canvas - make sure to account for panning
+    ctx.save();
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.clearRect(0, 0, canvasElement.width, canvasElement.height);
+    ctx.restore();
     
     // Helper function to draw arrow
     function drawArrow(fromX, fromY, toX, toY, color, isDouble = false) {
@@ -532,7 +530,6 @@ function initShapeCanvas(canvasElement, appState) {
     
     // Draw temp connection line when creating new connection
     if (appState.connectionStart && appState.mode === 'connect') {
-      const rect = canvasElement.getBoundingClientRect();
       const mouseX = appState.lastMouseX || 0;
       const mouseY = appState.lastMouseY || 0;
       
@@ -619,12 +616,7 @@ function initShapeCanvas(canvasElement, appState) {
   
   // Track mouse position for drawing the temp connection line
   canvasElement.addEventListener('mousemove', (e) => {
-    const rect = canvasElement.getBoundingClientRect();
-    const rawX = e.clientX - rect.left;
-    const rawY = e.clientY - rect.top;
-    
-    // Convert to canvas coordinates accounting for zoom
-    const {x, y} = windowToCanvas(rawX, rawY);
+    const {x, y} = windowToCanvas(e.clientX, e.clientY);
     
     appState.lastMouseX = x;
     appState.lastMouseY = y;
