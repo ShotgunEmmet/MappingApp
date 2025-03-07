@@ -7,13 +7,16 @@ document.addEventListener('DOMContentLoaded', () => {
     selectedShape: null,
     connectionStart: null,
     hoveredConnection: null,
-    hoveredShape: null, // Added hoveredShape property
-    dragOffsetX: 0, // Offset between mouse and shape center when dragging
-    dragOffsetY: 0, // Offset between mouse and shape center when dragging
-    mode: 'move', // 'move', 'connect', or 'delete'
+    hoveredShape: null,
+    dragOffsetX: 0,
+    dragOffsetY: 0,
+    mode: 'move',
     currentColor: '#3B82F6',
     currentShape: 'circle',
-    connectionType: 'blue' // 'blue' or 'red'
+    connectionType: 'blue',
+    zoomLevel: 1.0, // Default zoom level (100%)
+    minZoom: 1.0,  // Minimum zoom level (100%)
+    maxZoom: 4.0    // Maximum zoom level (400%)
   };
   
   // Create history manager
@@ -25,6 +28,14 @@ document.addEventListener('DOMContentLoaded', () => {
   // Initialize canvas
   const canvasElement = document.getElementById('shape-canvas');
   initShapeCanvas(canvasElement, appState);
+  
+  // Initialize zoom controls
+  if (typeof window.initZoomControls === 'function') {
+    const zoomControls = window.initZoomControls(canvasElement, appState);
+    
+    // Expose zoom controls to global scope
+    window.zoomControls = zoomControls;
+  }
   
   // Initialize toolbar controls
   initToolbarControls(appState);
