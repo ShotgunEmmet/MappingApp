@@ -168,24 +168,19 @@ function initZoomControls(canvasElement, appState) {
     if (clientX !== undefined && clientY !== undefined) {
       // Get the canvas rectangle
       const rect = canvasElement.getBoundingClientRect();
+      const dpr = window.devicePixelRatio || 1;
       
-      // Calculate the mouse position relative to the canvas in canvas coordinates
-      // This is the point that should stay fixed during the zoom
-      const mouseXBeforeZoom = (clientX - rect.left) / oldZoom;
-      const mouseYBeforeZoom = (clientY - rect.top) / oldZoom;
-      
-      // Calculate what the new position would be after zoom if we didn't adjust the pan
-      const mouseXAfterZoom = (clientX - rect.left) / constrainedNewZoom;
-      const mouseYAfterZoom = (clientY - rect.top) / constrainedNewZoom;
+      // Convert client coordinates to canvas coordinates
+      // Calculate the point in world space that's currently under the mouse
+      const worldX = (clientX - rect.left) / oldZoom - appState.panX / (oldZoom * dpr);
+      const worldY = (clientY - rect.top) / oldZoom - appState.panY / (oldZoom * dpr);
       
       // Update the zoom level
       appState.zoomLevel = constrainedNewZoom;
       
-      // Adjust the pan to keep the point under the mouse fixed
-      // The pan needs to be scaled by the devicePixelRatio
-      const dpr = window.devicePixelRatio || 1;
-      appState.panX += (mouseXAfterZoom - mouseXBeforeZoom) * constrainedNewZoom * dpr;
-      appState.panY += (mouseYAfterZoom - mouseYBeforeZoom) * constrainedNewZoom * dpr;
+      // Calculate new pan values to keep the world point under the mouse
+      appState.panX = (clientX - rect.left) - worldX * constrainedNewZoom * dpr;
+      appState.panY = (clientY - rect.top) - worldY * constrainedNewZoom * dpr;
     } else {
       // If no center is specified, just update the zoom level (zoom to center)
       appState.zoomLevel = constrainedNewZoom;
@@ -249,10 +244,16 @@ function initZoomControls(canvasElement, appState) {
     const dx = x - lastClientX;
     const dy = y - lastClientY;
     
-    // Apply the pan directly in screen space
+    // Calculate pan in canvas units by dividing by zoom level
+    // This makes panning feel consistent regardless of zoom level
+    // At high zoom levels, we need to pan less in world units
+    // At low zoom levels, we need to pan more in world units
     const dpr = window.devicePixelRatio || 1;
-    appState.panX += dx * dpr;
-    appState.panY += dy * dpr;
+    
+    // The key insight: Screen pixels need to be converted to canvas units
+    // by dividing by the zoom level
+    appState.panX += (dx / appState.zoomLevel) * dpr;
+    appState.panY += (dy / appState.zoomLevel) * dpr;
     
     // Update last position
     lastClientX = x;
