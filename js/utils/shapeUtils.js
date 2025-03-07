@@ -1,5 +1,6 @@
 // Find shape at position
 function findShapeAt(x, y, shapes) {
+  // x and y are already in canvas/world coordinates (accounting for zoom and pan)
   for (let i = shapes.length - 1; i >= 0; i--) {
     const shape = shapes[i];
     if (shape.type === 'circle') {
@@ -61,11 +62,20 @@ function addShape(type, appState) {
     window.historyManager.saveState();
   }
   
+  // Get canvas center in canvas/world coordinates
+  const canvasElement = document.getElementById('shape-canvas');
+  const rect = canvasElement.getBoundingClientRect();
+  
+  // Calculate canvas center in world coordinates
+  const centerX = appState.originalWidth / 2;
+  const centerY = appState.originalHeight / 2;
+  
   const newShape = {
     id: Date.now(),
     type,
-    x: Math.random() * 400 + 50,
-    y: Math.random() * 300 + 50,
+    // Add shape near the center, with some random offset
+    x: centerX + (Math.random() * 200 - 100),
+    y: centerY + (Math.random() * 150 - 75),
     width: type === 'rectangle' ? 80 : 50,
     height: type === 'rectangle' ? 50 : 50,
     color: appState.currentColor

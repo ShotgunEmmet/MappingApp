@@ -38,9 +38,10 @@ function findConnectionsBetweenShapes(shape1Id, shape2Id, connections) {
   );
 }
 
-// Find a connection at a specific point
+// Find a connection at a specific point, accounting for zoom level
 function findConnectionAt(x, y, connections, shapes) {
   // Threshold for how close the point needs to be to the line
+  // This should be a constant value in world units, not affected by zoom
   const threshold = 5;
   
   for (const connection of connections) {
@@ -92,6 +93,30 @@ function findConnectionAt(x, y, connections, shapes) {
       if (distToControl < threshold * 3 || 
           distToStart < threshold || 
           distToEnd < threshold) {
+        return connection;
+      }
+      
+      // More precise check by sampling points along the quadratic curve
+      // This is more computationally expensive but more accurate
+      const numSamples = 20;
+      let minDistance = Infinity;
+      
+      for (let i = 0; i <= numSamples; i++) {
+        const t = i / numSamples;
+        // Calculate point on quadratic curve at t
+        const ptX = Math.pow(1-t, 2) * startShape.x + 
+                    2 * (1-t) * t * controlX + 
+                    Math.pow(t, 2) * endShape.x;
+        const ptY = Math.pow(1-t, 2) * startShape.y + 
+                    2 * (1-t) * t * controlY + 
+                    Math.pow(t, 2) * endShape.y;
+        
+        // Calculate distance to this point
+        const dist = Math.sqrt(Math.pow(x - ptX, 2) + Math.pow(y - ptY, 2));
+        minDistance = Math.min(minDistance, dist);
+      }
+      
+      if (minDistance < threshold) {
         return connection;
       }
     } else {
